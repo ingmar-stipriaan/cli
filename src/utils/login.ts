@@ -91,6 +91,12 @@ class FusionAuth {
         return this.storeToken(token);
       }
 
+      const { VERBOSE } = process.env;
+      if (VERBOSE) {
+        const error = await resp.text();
+        console.log(`Error on login. Status: ${resp.status}, Error: ${error}`);
+      }
+
       return this.ensureLogin();
     });
   }
