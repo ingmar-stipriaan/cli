@@ -347,15 +347,24 @@ const readInteractions: () => Promise<Interaction[]> = async (): Promise<
 // eslint-disable-next-line no-void
 void (async (): Promise<void> => {
   await checkUpdateAvailableCLI();
+
   try {
     const [newPrefabs, oldPrefabs, components, interactions, partialprefabs] =
-      await Promise.all([
-        readtsPrefabs(),
-        readPrefabs(),
-        readComponents(),
-        readInteractions(),
-        readPartialPrefabs(),
-      ]);
+      selected
+        ? await Promise.all([
+            selected.prefabsTs ? readtsPrefabs() : [],
+            selected.prefabs ? readPrefabs() : [],
+            selected.components ? readComponents() : [],
+            selected.interactions ? readInteractions() : [],
+            selected.partials ? readPartialPrefabs() : [],
+          ])
+        : await Promise.all([
+            readtsPrefabs(),
+            readPrefabs(),
+            readComponents(),
+            readInteractions(),
+            readPartialPrefabs(),
+          ]);
 
     const prefabs = oldPrefabs.concat(newPrefabs);
 
