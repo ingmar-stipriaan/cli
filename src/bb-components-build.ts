@@ -3,7 +3,13 @@ import chalk from 'chalk';
 import path from 'path';
 import program, { CommanderStatic } from 'commander';
 import ts from 'typescript';
-import { outputJson, pathExists, promises, remove } from 'fs-extra';
+import {
+  outputJson,
+  pathExists,
+  promises,
+  readJSONSync,
+  remove,
+} from 'fs-extra';
 import extractComponentCompatibility from './components/compatibility';
 import { doTranspile } from './components/transformers';
 import extractInteractionCompatibility from './interactions/compatibility';
@@ -17,6 +23,7 @@ import {
   PrefabReference,
   PrefabPartial,
   PrefabWrapper,
+  Build,
 } from './types';
 import { parseDir } from './utils/arguments';
 import { checkUpdateAvailableCLI } from './utils/checkUpdateAvailable';
@@ -47,14 +54,14 @@ const rootDir: string = parseDir(args);
 const distDir = `${rootDir}/dist`;
 const enableNewTranspile = !!options.transpile;
 
-// start here
-const selected = {
-  components: ['button.js'],
-  prefabsTs: ['button.tsx'],
-  prefabs: [],
-  partials: [],
-  interactions: [],
-};
+const buildFile = `${rootDir}/src/build.json`;
+let selected: Build;
+
+try {
+  selected = readJSONSync(buildFile);
+} catch {
+  console.log('No build json found');
+}
 
 /* execute command */
 
@@ -68,8 +75,10 @@ const readComponents: () => Promise<Component[]> = async (): Promise<
     throw new Error(chalk.red('\nComponents folder not found\n'));
   }
 
-  // const componentFiles: string[] = await readFilesByType(srcDir);
-  const componentFiles = selected.components;
+  const componentFiles: string[] = selected
+    ? selected.components
+    : await readFilesByType(srcDir);
+
   console.log('componentFiles', componentFiles);
 
   const components: Array<Promise<Component>> = componentFiles.map(
@@ -140,11 +149,17 @@ const readtsPrefabs: () => Promise<Prefab[]> = async (): Promise<Prefab[]> => {
     throw new Error(chalk.red('\nPrefabs folder not found\n'));
   }
 
-  const prefabTsFiles: string[] = await readFilesByType(srcDir, 'ts');
-  const prefabTsxFiles: string[] = await readFilesByType(srcDir, 'tsx');
+  let prefabFiles: string[];
 
-  // const prefabFiles = [...prefabTsFiles, ...prefabTsxFiles];
-  const prefabFiles = selected.prefabsTs;
+  if (selected) {
+    prefabFiles = selected.prefabsTs;
+  } else {
+    const prefabTsFiles: string[] = await readFilesByType(srcDir, 'ts');
+    const prefabTsxFiles: string[] = await readFilesByType(srcDir, 'tsx');
+
+    prefabFiles = [...prefabTsFiles, ...prefabTsxFiles];
+  }
+
   console.log('tsprefabFiles', prefabFiles);
 
   const prefabProgram = ts.createProgram(
@@ -220,8 +235,10 @@ const readPrefabs: () => Promise<Prefab[]> = async (): Promise<Prefab[]> => {
     throw new Error(chalk.red('\nPrefabs folder not found\n'));
   }
 
-  // const prefabFiles: string[] = await readFilesByType(srcDir);
-  const prefabFiles = selected.prefabs;
+  const prefabFiles: string[] = selected
+    ? selected.prefabs
+    : await readFilesByType(srcDir);
+
   console.log('prefabFiles', prefabFiles);
 
   const prefabs: Array<Promise<Prefab>> = prefabFiles.map(
@@ -258,8 +275,10 @@ const readPartialPrefabs: () => Promise<Prefab[]> = async (): Promise<
     await mkdir(srcDir, { recursive: true });
   }
 
-  // const partialPrefabFiles: string[] = await readFilesByType(srcDir);
-  const partialPrefabFiles = selected.partials;
+  const partialPrefabFiles: string[] = selected
+    ? selected.partials
+    : await readFilesByType(srcDir);
+
   console.log('partialPrefabFiles', partialPrefabFiles);
 
   const partialPrefabs: Array<Promise<Prefab>> = partialPrefabFiles.map(
@@ -298,8 +317,10 @@ const readInteractions: () => Promise<Interaction[]> = async (): Promise<
     });
   }
 
-  // const interactionFiles: string[] = await readFilesByType(srcDir, 'ts');
-  const interactionFiles = selected.interactions;
+  const interactionFiles: string[] = selected
+    ? selected.interactions
+    : await readFilesByType(srcDir, 'ts');
+
   console.log('interactionFiles', interactionFiles);
 
   return Promise.all(

@@ -335,3 +335,11 @@ export interface PrefabVariable {
   };
   options?: unknown;
 }
+
+export type Build = {
+  components: string[];
+  prefabsTs: string[];
+  prefabs: string[];
+  partials: string[];
+  interactions: string[];
+};
