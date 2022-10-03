@@ -54,13 +54,17 @@ const rootDir: string = parseDir(args);
 const distDir = `${rootDir}/dist`;
 const enableNewTranspile = !!options.transpile;
 
+const startTime = Date.now();
+let endTime;
+
 const buildFile = `${rootDir}/src/build.json`;
-let selected: Build;
+let selected: Build | undefined;
 
 try {
   selected = readJSONSync(buildFile);
+  console.log('build.json found!');
 } catch {
-  console.log('No build json found');
+  console.log('No build.json found');
 }
 
 /* execute command */
@@ -78,8 +82,6 @@ const readComponents: () => Promise<Component[]> = async (): Promise<
   const componentFiles: string[] = selected
     ? selected.components
     : await readFilesByType(srcDir);
-
-  console.log('componentFiles', componentFiles);
 
   const components: Array<Promise<Component>> = componentFiles.map(
     async (file: string): Promise<Component> => {
@@ -160,8 +162,6 @@ const readtsPrefabs: () => Promise<Prefab[]> = async (): Promise<Prefab[]> => {
     prefabFiles = [...prefabTsFiles, ...prefabTsxFiles];
   }
 
-  console.log('tsprefabFiles', prefabFiles);
-
   const prefabProgram = ts.createProgram(
     prefabFiles.map((file) => `${srcDir}/${file}`),
     {
@@ -239,8 +239,6 @@ const readPrefabs: () => Promise<Prefab[]> = async (): Promise<Prefab[]> => {
     ? selected.prefabs
     : await readFilesByType(srcDir);
 
-  console.log('prefabFiles', prefabFiles);
-
   const prefabs: Array<Promise<Prefab>> = prefabFiles.map(
     async (file: string): Promise<Prefab> => {
       try {
@@ -278,8 +276,6 @@ const readPartialPrefabs: () => Promise<Prefab[]> = async (): Promise<
   const partialPrefabFiles: string[] = selected
     ? selected.partials
     : await readFilesByType(srcDir);
-
-  console.log('partialPrefabFiles', partialPrefabFiles);
 
   const partialPrefabs: Array<Promise<Prefab>> = partialPrefabFiles.map(
     async (file: string): Promise<Prefab> => {
@@ -320,8 +316,6 @@ const readInteractions: () => Promise<Interaction[]> = async (): Promise<
   const interactionFiles: string[] = selected
     ? selected.interactions
     : await readFilesByType(srcDir, 'ts');
-
-  console.log('interactionFiles', interactionFiles);
 
   return Promise.all(
     interactionFiles.map(async (file: string): Promise<Interaction> => {
@@ -365,6 +359,8 @@ void (async (): Promise<void> => {
             readInteractions(),
             readPartialPrefabs(),
           ]);
+    endTime = Date.now();
+    console.info(`total time: ${(endTime - startTime) / 1000} seconds`);
 
     const prefabs = oldPrefabs.concat(newPrefabs);
 
