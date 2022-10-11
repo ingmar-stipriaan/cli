@@ -36,6 +36,7 @@ program
     'publish the component set from a specific path, defaults to CWD',
   )
   .command('generate [name]', 'generate a component with a given name')
+  .command('test [path]', 'Test all or a single testscript')
   .on('command:*', ([command]: string[]): void => {
     if (!availableCommands.includes(command as CommandComponents)) {
       console.error('Invalid command: %s\n', command);

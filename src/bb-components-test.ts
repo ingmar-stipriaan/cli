@@ -5,16 +5,17 @@ import { spawn } from 'child_process';
 import program from 'commander';
 
 /* process arguments */
-
 program
+  .usage('[path]')
   .name('bb components test')
-  .option('--path [path]', 'Path to testfile.', '/__test__')
+  .option('--path [path]', 'Path to testfile.', '')
   .parse(process.argv);
 
 const options = {
   path: program.path as string,
 };
 /* execute command */
+console.log('starting test...');
 
 new Promise((resolve): void => {
   let build = spawn(`npm run test`, {
@@ -32,7 +33,7 @@ new Promise((resolve): void => {
   build.on('close', resolve);
 })
   .then(() => {
-    console.log('Done.');
+    console.log('Test complete.');
   })
   .catch((err: NodeJS.ErrnoException) => {
     console.log(`${err}\nAbort.`);
