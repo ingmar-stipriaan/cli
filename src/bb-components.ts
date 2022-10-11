@@ -11,6 +11,7 @@ const availableCommands: CommandComponents[] = [
   'create',
   'build',
   'serve',
+  'test',
   'publish',
   'help',
   'generate',
