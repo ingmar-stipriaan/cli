@@ -45,6 +45,7 @@ const optionConfigurationSchemaBase = {
   disabled: Joi.boolean(),
   dataType: Joi.string(),
   dependsOn: Joi.string(),
+  showOnDrop: Joi.boolean(),
   placeholder: Joi.string(),
   modal: Joi.object({
     type: Joi.string().valid(...MODAL_TYPE),
