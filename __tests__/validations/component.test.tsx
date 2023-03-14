@@ -964,7 +964,6 @@ test('Success when the reconfigure configuration options of the prefabs are vali
                   value: '',
                 },
                 showOnDrop: true,
-                showTextStyleColor: true,
               },
             },
           ],
